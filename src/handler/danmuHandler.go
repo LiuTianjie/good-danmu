@@ -17,24 +17,24 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-var upGrader = websocket.Upgrader{
-	CheckOrigin: func(r *http.Request) bool {
-		return true
-	},
-}
+
 
 func DanmuHandler(c *gin.Context) {
-
 	danmuId := c.Param("id")
 	log.Println("enter handler:", danmuId)
-	log.Println(danmuId)
 	var (
 		conn  *websocket.Conn
 		err   error
 		danmu *dm.DanmuServer
 		data  []byte
 	)
-
+	var upGrader = websocket.Upgrader{
+		CheckOrigin: func(r *http.Request) bool {
+			return true
+		},
+		// 校验是否携带token
+		Subprotocols: []string{c.GetHeader("Sec-WebSocket-Protocol")},
+	}
 	if conn, err = upGrader.Upgrade(c.Writer, c.Request, nil); err != nil {
 		return
 	}
