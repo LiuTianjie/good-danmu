@@ -30,8 +30,10 @@ understand how and why Golang is so suitable for high performance, concurrent pr
 
 ### Todo list
 - [x] Basic danmu structure
-- [ ] User auth
-- [ ] Login
-- [ ] Register
+- [x] User auth
+- [x] Login
+- [x] Register
 - [ ] Storage
+  - [x] user model
+  - [ ] danmu model
 - [ ] Benchmark
