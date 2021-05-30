@@ -4,11 +4,12 @@
  * @Author: Nickname4th
  * @Date: 2021-05-23 19:55:32
  * @LastEditors: Nickname4th
- * @LastEditTime: 2021-05-23 21:25:08
+ * @LastEditTime: 2021-05-29 10:51:18
  */
 package init
 
 import (
+	"good-danmu/src/middleware"
 	"good-danmu/src/router"
 	"net/http"
 
@@ -20,13 +21,14 @@ func Routers() *gin.Engine {
 	Router.Use(Cors())
 	PublicGroup := Router.Group("base")
 	{
-		router.InitDanmuRoute(PublicGroup)
+		router.InitBaseUser(PublicGroup)
 	}
-	//  PrivateGroup := Router.Group("v1")
-	//  PrivateGroup.Use(middle.JWTAuth())
-	//  {
-	// 	 router.IintAuthRoute(PrivateGroup)
-	//  }
+	PrivateGroup := Router.Group("v1")
+	PrivateGroup.Use(middleware.JWTAuth())
+	{
+		router.InitDanmuRoute(PrivateGroup)
+		router.IintAuthRoute(PrivateGroup)
+	}
 	return Router
 }
 
