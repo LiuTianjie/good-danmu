@@ -34,7 +34,7 @@ func Register(c *gin.Context) {
 	}
 	if !errors.Is(global.DB.Where("username = ?", u.Username).First(&model.User{}).Error, gorm.ErrRecordNotFound) {
 		utils.FailedMsg(400, "用户名已注册", c)
-	}else {
+	} else {
 		user := &model.User{Username: u.Username, Password: u.Password}
 		user.Password = utils.MD5V([]byte(user.Password))
 		user.UUID = uuid.NewV4()
@@ -65,6 +65,11 @@ func Login(c *gin.Context) {
 }
 
 func tokenNext(c *gin.Context, user model.User) {
+	type userInfo struct {
+		Token     string
+		Username  string
+		Privilege int
+	}
 	j := middleware.JWT{
 		SignKey: []byte(global.CONFIG.JWT.SignKey),
 	}
@@ -72,6 +77,7 @@ func tokenNext(c *gin.Context, user model.User) {
 		UUID:       user.UUID,
 		Username:   user.Username,
 		BufferTime: global.CONFIG.JWT.BufferTime,
+		Privilege:  1,
 		StandardClaims: jwt.StandardClaims{
 			NotBefore: time.Now().Unix() - 1000,
 			ExpiresAt: time.Now().Unix() + global.CONFIG.JWT.ExpiresTime,
@@ -83,31 +89,31 @@ func tokenNext(c *gin.Context, user model.User) {
 		utils.FailedMsg(400, "获取token失败", c)
 		return
 	} else {
-		utils.OkDetail(200, token, "登录成功", c)
+		utils.OkDetail(200, &userInfo{token, user.Username, claims.Privilege}, "登录成功", c)
 		return
 	}
 }
 
-
 type userinfo struct {
 	username string
-	userid uuid.UUID
+	userid   uuid.UUID
 }
+
 func UserInfo(c *gin.Context) {
 	var (
-		err error
+		err      error
 		username string
 	)
-	if err = c.ShouldBind(&username);err!=nil{
-		utils.FailedMsg(404,"参数缺失", c)
+	if err = c.ShouldBind(&username); err != nil {
+		utils.FailedMsg(404, "参数缺失", c)
 		c.Abort()
-	}else{
+	} else {
 		var info userinfo
-		if err = global.DB.Where("username = ?", username).First(&info).Error;err!=nil{
-			utils.OkMsg(200,"无此用户",c)
+		if err = global.DB.Where("username = ?", username).First(&info).Error; err != nil {
+			utils.OkMsg(200, "无此用户", c)
 			return
-		}else{
-			utils.OkDetail(200,info,"查找成功",c)
+		} else {
+			utils.OkDetail(200, info, "查找成功", c)
 			return
 		}
 	}
