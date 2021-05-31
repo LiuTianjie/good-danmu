@@ -11,6 +11,8 @@ package service
 import (
 	"errors"
 	"fmt"
+	"good-danmu/src/global"
+	"good-danmu/src/model"
 	"log"
 	"sync"
 
@@ -64,6 +66,7 @@ func (dm *DanmuServer) Write(data []byte) (err error) {
 }
 
 func (dm *DanmuServer) Close() {
+	log.Println(dm.Username, "'s connection close")
 	dm.conn.Close()
 	dm.mutex.Lock()
 	if !dm.isCLosed {
@@ -87,13 +90,15 @@ func (dm *DanmuServer) ReadLoop() {
 		case dm.InChan <- data:
 			{
 				log.Println(DanmuChannels)
+				log.Println(dm.Username, "said:", data)
+				//save danmu content to database
+				SaveDanmu(dm.dmName, dm.Username, data)
 				// traverse the channel in the server
 				for _, v := range DanmuChannels[dm.dmName] {
 					if v.uid != dm.uid && !v.isCLosed {
 						v.InChan <- data
 						fmt.Println("send to:", v.uid)
 					}
-					log.Println(dm.Username, "said:", data)
 				}
 			}
 		case <-dm.CloseChan:
@@ -129,6 +134,7 @@ ERR:
 }
 
 func InitDanmuServer(wsConn *websocket.Conn, dmName string, Username string) (conn *DanmuServer, err error) {
+	log.Println(Username + " Joined " + dmName)
 	conn = &DanmuServer{
 		dmName:    dmName,
 		Username:  Username,
@@ -141,4 +147,20 @@ func InitDanmuServer(wsConn *websocket.Conn, dmName string, Username string) (co
 	go conn.ReadLoop()
 	go conn.WriteLoop()
 	return
+}
+
+func SaveDanmu(DanmuId, Username string, DanmuContent []byte) {
+	danmu := &model.DanmuContent{
+		Content:  DanmuContent,
+		RoomId:   DanmuId,
+		Username: Username,
+		Type:     "normal",
+	}
+	err := global.DB.Create(&danmu).Error
+	if err != nil {
+		log.Println(err)
+		log.Println("插入出错")
+	} else {
+		log.Println("插入成功！")
+	}
 }
