@@ -17,5 +17,5 @@ type User struct {
 	gorm.Model
 	UUID     uuid.UUID `json:"uuid" gorm:"comment:用户UUID"`
 	Username string    `json:"username" grom:"comment:用户名"`
-	Password string    `json:"password" grom:"comment:用户密码`
+	Password string    `json:"password" grom:"comment:用户密码"`
 }
