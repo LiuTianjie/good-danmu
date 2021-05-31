@@ -31,9 +31,16 @@ understand how and why Golang is so suitable for high performance, concurrent pr
 ### Todo list
 - [x] Basic danmu structure
 - [x] User auth
-- [x] Login
-- [x] Register
+  - [x] Websocket auth
+  - [x] Login
+  - [x] Register
+  - [ ] More complex auth with casbin
+    > We need user, 3 kinds of vip, admin, etc.
 - [ ] Storage
   - [x] user model
-  - [ ] danmu model
+  - [x] danmu model
+- [ ] Use Redis to cache dan mu.
+  - [ ] storage
+  - [ ] read
+  > Using Redis to Reduce Database Write Frequency
 - [ ] Benchmark
