@@ -30,15 +30,15 @@ func DanmuHandler(c *gin.Context) {
 		Username string
 	)
 	if Username, err = parse.GetUserFromToken(token); err != nil {
+		log.Println("没有找到用户")
 		utils.FailedMsg(400, "没有找到对应的用户", c)
 		return
 	}
-	log.Println(Username + "joined" + danmuId)
 	var upGrader = websocket.Upgrader{
 		CheckOrigin: func(r *http.Request) bool {
 			return true
 		},
-		// 校验是否携带token
+		// Check whether there is a token.
 		Subprotocols: []string{token},
 	}
 	if conn, err = upGrader.Upgrade(c.Writer, c.Request, nil); err != nil {

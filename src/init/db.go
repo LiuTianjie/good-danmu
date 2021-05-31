@@ -42,7 +42,8 @@ func ConnectDB() *gorm.DB {
 func Gorm(db *gorm.DB) {
 	err := db.AutoMigrate(
 		model.User{},
-		model.Danmu{},
+		model.DanmuRoom{},
+		model.DanmuContent{},
 	)
 	if err != nil {
 		log.Println("初始化数据库失败")

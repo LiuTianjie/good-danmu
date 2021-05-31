@@ -18,6 +18,7 @@ type CustomClaims struct {
 	UUID       uuid.UUID
 	ID         uint
 	Username   string
+	Privilege  int
 	BufferTime int64
 	jwt.StandardClaims
 }
