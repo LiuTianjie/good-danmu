@@ -31,6 +31,7 @@ var DanmuChannels = map[string][]*DanmuServer{}
 
 type DanmuServer struct {
 	dmName    string
+	Username  string
 	uid       uuid.UUID
 	conn      *websocket.Conn
 	InChan    chan []byte
@@ -92,7 +93,7 @@ func (dm *DanmuServer) ReadLoop() {
 						v.InChan <- data
 						fmt.Println("send to:", v.uid)
 					}
-					log.Println(dm.dmName, "said:", data)
+					log.Println(dm.Username, "said:", data)
 				}
 			}
 		case <-dm.CloseChan:
@@ -127,10 +128,10 @@ ERR:
 	dm.Close()
 }
 
-func InitDanmuServer(wsConn *websocket.Conn, dmName string) (conn *DanmuServer, err error) {
-	log.Println("iniatizaling!" + dmName)
+func InitDanmuServer(wsConn *websocket.Conn, dmName string, Username string) (conn *DanmuServer, err error) {
 	conn = &DanmuServer{
 		dmName:    dmName,
+		Username:  Username,
 		uid:       uuid.NewV4(),
 		conn:      wsConn,
 		InChan:    make(chan []byte, 1000),
