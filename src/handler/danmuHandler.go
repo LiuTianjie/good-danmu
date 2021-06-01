@@ -49,6 +49,7 @@ func DanmuHandler(c *gin.Context) {
 	if danmu, err = dm.InitDanmuServer(conn, danmuId, Username); err != nil {
 		goto ERR
 	}
+	// TODO:Join Redis pool
 	dm.DanmuChannels[danmuId] = append(dm.DanmuChannels[danmuId], danmu)
 	for {
 		if data, err = danmu.Read(); err != nil {

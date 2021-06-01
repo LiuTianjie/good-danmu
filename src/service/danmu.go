@@ -29,6 +29,7 @@ import (
 // While there may be a concurrent error because each client may send message at the same time.
 // So consider about using sync mutex.
 // 2. Use a channel to notify whether one can use the data structure.
+//TODO:Use Redis to replace the DanmuChannels
 var DanmuChannels = map[string][]*DanmuServer{}
 
 type DanmuServer struct {
@@ -91,9 +92,11 @@ func (dm *DanmuServer) ReadLoop() {
 			{
 				log.Println(DanmuChannels)
 				log.Println(dm.Username, "said:", data)
-				//save danmu content to database
+				//Save danmu content to database.
+				//TODO: Use Redis to reduce the write ops of mysql.
 				SaveDanmu(dm.dmName, dm.Username, data)
-				// traverse the channel in the server
+				// Traverse the channel in the server
+				// TODO: Use Redis connection pool to broadcast the message.
 				for _, v := range DanmuChannels[dm.dmName] {
 					if v.uid != dm.uid && !v.isCLosed {
 						v.InChan <- data
