@@ -11,17 +11,25 @@ package api
 import (
 	"errors"
 	"good-danmu/src/global"
+	h "good-danmu/src/handler"
 	"good-danmu/src/middleware"
 	"good-danmu/src/model"
 	"good-danmu/src/utils"
+	"gorm.io/gorm"
 	"log"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 	uuid "github.com/satori/go.uuid"
-	"gorm.io/gorm"
 )
+
+type userInfo struct {
+	token     string
+	userName  string
+	userId    uuid.UUID
+	privilege int
+}
 
 func Register(c *gin.Context) {
 	var (
@@ -32,14 +40,13 @@ func Register(c *gin.Context) {
 		utils.FailedMsg(400, "注册信息有误", c)
 		return
 	}
-	if !errors.Is(global.DB.Where("username = ?", u.Username).First(&model.User{}).Error, gorm.ErrRecordNotFound) {
+	if _, err = h.SearchUser("Existed", u.Username); !errors.Is(err, gorm.ErrRecordNotFound) {
 		utils.FailedMsg(400, "用户名已注册", c)
 	} else {
 		user := &model.User{Username: u.Username, Password: u.Password}
 		user.Password = utils.MD5V([]byte(user.Password))
 		user.UUID = uuid.NewV4()
-		err = global.DB.Create(&user).Error
-		if err != nil {
+		if err = global.DB.Create(&user).Error; err != nil {
 			utils.FailedMsg(400, "注册失败", c)
 		} else {
 			utils.OkMsg(200, "注册成功", c)
@@ -48,14 +55,16 @@ func Register(c *gin.Context) {
 }
 
 func Login(c *gin.Context) {
-	var L model.User
-	if err := c.ShouldBind(&L); err != nil {
+	var (
+		err  error
+		L    model.User
+		user model.User
+	)
+	if err = c.ShouldBind(&L); err != nil {
 		utils.FailedMsg(400, "用户名/密码不能为空", c)
 		c.Abort()
 	} else {
-		var user model.User
-		err := global.DB.Where("username = ? AND password = ?", L.Username, utils.MD5V([]byte(L.Password))).First(&user).Error
-		if err != nil {
+		if user, err = h.SearchUser("ByPass", L); err != nil {
 			utils.FailedMsg(401, "用户名/密码/错误", c)
 			c.Abort()
 		} else {
@@ -65,11 +74,6 @@ func Login(c *gin.Context) {
 }
 
 func tokenNext(c *gin.Context, user model.User) {
-	type userInfo struct {
-		Token     string
-		Username  string
-		Privilege int
-	}
 	j := middleware.JWT{
 		SignKey: []byte(global.CONFIG.JWT.SignKey),
 	}
@@ -89,31 +93,26 @@ func tokenNext(c *gin.Context, user model.User) {
 		utils.FailedMsg(400, "获取token失败", c)
 		return
 	} else {
-		utils.OkDetail(200, &userInfo{token, user.Username, claims.Privilege}, "登录成功", c)
+		utils.OkDetail(200, &userInfo{token, user.Username, user.UUID, claims.Privilege}, "登录成功", c)
 		return
 	}
-}
-
-type userinfo struct {
-	username string
-	userid   uuid.UUID
 }
 
 func UserInfo(c *gin.Context) {
 	var (
 		err      error
-		username string
+		userName string
+		user     model.User
 	)
-	if err = c.ShouldBind(&username); err != nil {
+	if err = c.ShouldBind(&userName); err != nil {
 		utils.FailedMsg(404, "参数缺失", c)
 		c.Abort()
 	} else {
-		var info userinfo
-		if err = global.DB.Where("username = ?", username).First(&info).Error; err != nil {
+		if user, err = h.SearchUser("ByName", userName); err != nil {
 			utils.OkMsg(200, "无此用户", c)
 			return
 		} else {
-			utils.OkDetail(200, info, "查找成功", c)
+			utils.OkDetail(200, &userInfo{userName: user.Username, userId: user.UUID}, "查找成功", c)
 			return
 		}
 	}
