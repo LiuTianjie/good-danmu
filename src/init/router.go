@@ -27,7 +27,7 @@ func Routers() *gin.Engine {
 	PrivateGroup.Use(middleware.JWTAuth())
 	{
 		router.InitDanmuRoute(PrivateGroup)
-		router.IintAuthRoute(PrivateGroup)
+		router.InitAuthRoute(PrivateGroup)
 	}
 	return Router
 }
