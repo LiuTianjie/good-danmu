@@ -14,11 +14,10 @@ import "gorm.io/gorm"
 
 type DanmuRoom struct {
 	gorm.Model
-	DanmuId       string         `json:"danmu_id" gorm:"index:,unique"`
-	DanmuContents []DanmuContent `json:"danmu_contents" gorm:"foreignKey:RoomId;references:DanmuId"`
+	DanmuContents []DanmuContent `json:"danmu_contents" gorm:"foreignKey:RoomId;"`
 	RoomName      string         `json:"room_name"`
 	RoomDesc      string         `json:"room_desc"`
-	Users         []User         `json:"users" gorm:"many2many:danmu_room_users;foreignKey:DanmuId;joinForeignKey:Username;"`
+	Users         []User         `json:"users" gorm:"many2many:danmu_room_users;"`
 	OnlineUsers   int64          `json:"online_users" gorm:"comment:当前房间在线人数"`
 	DanmuCount    int64          `json:"danmu_count"`
 }
