@@ -40,7 +40,7 @@ type DanmuServer struct {
 	InChan    chan []byte
 	OutChan   chan []byte
 	CloseChan chan byte
-	isCLosed  bool
+	isClosed  bool
 	mutex     sync.Mutex
 }
 
@@ -49,7 +49,7 @@ func (dm *DanmuServer) Read() (data []byte, err error) {
 	case data = <-dm.InChan:
 	case <-dm.CloseChan:
 		{
-			err = errors.New("danmu connection is closed!")
+			err = errors.New("danmu connection is closed")
 		}
 	}
 	return
@@ -60,7 +60,7 @@ func (dm *DanmuServer) Write(data []byte) (err error) {
 	case dm.OutChan <- data:
 	case <-dm.CloseChan:
 		{
-			err = errors.New("danmu connection is closed!")
+			err = errors.New("danmu connection is closed")
 		}
 	}
 	return
@@ -68,11 +68,14 @@ func (dm *DanmuServer) Write(data []byte) (err error) {
 
 func (dm *DanmuServer) Close() {
 	log.Println(dm.Username, "'s connection close")
-	dm.conn.Close()
+	var err error
+	if err = dm.conn.Close(); err != nil {
+		log.Println("关闭出错")
+	}
 	dm.mutex.Lock()
-	if !dm.isCLosed {
+	if !dm.isClosed {
 		close(dm.CloseChan)
-		dm.isCLosed = true
+		dm.isClosed = true
 	}
 	dm.mutex.Unlock()
 }
@@ -98,7 +101,7 @@ func (dm *DanmuServer) ReadLoop() {
 				// Traverse the channel in the server
 				// TODO: Use Redis connection pool to broadcast the message.
 				for _, v := range DanmuChannels[dm.dmName] {
-					if v.uid != dm.uid && !v.isCLosed {
+					if v.uid != dm.uid && !v.isClosed {
 						v.InChan <- data
 						fmt.Println("send to:", v.uid)
 					}
@@ -128,7 +131,7 @@ func (dm *DanmuServer) WriteLoop() {
 				goto ERR
 			}
 		}
-		if dm.conn.WriteMessage(websocket.TextMessage, data); err != nil {
+		if err = dm.conn.WriteMessage(websocket.TextMessage, data); err != nil {
 			goto ERR
 		}
 	}
