@@ -34,6 +34,6 @@ func InitBaseUser(Router *gin.RouterGroup) {
 func InitAuthRoute(Router *gin.RouterGroup) {
 	AuthRouter := Router.Group("")
 	{
-		AuthRouter.GET("user", api.UserInfo)
+		AuthRouter.GET("user", api.GetUserInfo)
 	}
 }
