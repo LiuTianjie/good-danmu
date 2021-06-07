@@ -7,7 +7,6 @@
 package api
 
 import (
-	"encoding/json"
 	"github.com/gin-gonic/gin"
 	"good-danmu/src/global"
 	h "good-danmu/src/handler"
@@ -24,11 +23,7 @@ type RoomStruct struct {
 
 func GetDanmuRooms(c *gin.Context) {
 	rooms := h.SearchAllRooms()
-	//utils.OkMsg(200, "请求成功", c)
-	ret, _ := json.Marshal(rooms)
-	n := len(ret)        //Find the length of the byte array
-	s := string(ret[:n]) //convert to string
-	utils.OkDetail(200, s, "请求成功", c)
+	utils.OkDetail(200, rooms, "获取房间列表成功", c)
 }
 
 func CreateDanmuRoom(c *gin.Context) {

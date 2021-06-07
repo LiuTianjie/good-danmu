@@ -34,13 +34,14 @@ understand how and why Golang is so suitable for high performance, concurrent pr
   - [x] Websocket auth
   - [x] Login
   - [x] Register
+  - [ ] single place login
   - [ ] More complex auth with casbin
-    > We need user, 3 kinds of vip, admin, etc.
 - [ ] Storage
   - [x] user model
   - [x] danmu model
-- [ ] Use Redis to cache dan mu.
-  - [ ] storage
-  - [ ] read
+- [x] Use Redis to cache dan mu.
+  - [x] use redis to cache the login status
+  - [x] storage
+  - [ ] redis storage AOF/RDB
   > Using Redis to Reduce Database Write Frequency
 - [ ] Benchmark

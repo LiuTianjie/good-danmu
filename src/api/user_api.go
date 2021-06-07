@@ -81,7 +81,7 @@ func tokenNext(c *gin.Context, user model.User) {
 		tokenInfo UserInfo
 	)
 	// 先查redis中有没有token
-	if token, err = global.RDB.Get(user.Username).Result(); err != nil {
+	if token, err = global.RDB.Rdb.Get(user.Username).Result(); err != nil {
 		log.Println("Redis中没有token")
 	} else {
 		if err = json.Unmarshal([]byte(token), &tokenInfo); err != nil {
@@ -120,7 +120,7 @@ func tokenNext(c *gin.Context, user model.User) {
 		}
 		data, _ := json.Marshal(tokenInfo)
 		utils.OkDetail(200, tokenInfo, "登录成功", c)
-		if err = global.RDB.Set(user.Username, data, 100*time.Second).Err(); err != nil {
+		if err = global.RDB.Rdb.Set(user.Username, data, 100*time.Second).Err(); err != nil {
 			log.Println("向Redis存储tokenInfo的过程出错")
 			return
 		}

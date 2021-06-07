@@ -50,6 +50,7 @@ func DanmuHandler(c *gin.Context) {
 		goto ERR
 	}
 	// TODO:Join Redis pool
+	// Here we are in main thread, append elements into DanmuChannels will not cause a concurrent.
 	dm.DanmuChannels[danmuId] = append(dm.DanmuChannels[danmuId], danmu)
 	for {
 		if data, err = danmu.Read(); err != nil {

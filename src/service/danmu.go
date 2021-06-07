@@ -9,15 +9,15 @@
 package service
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/gorilla/websocket"
+	uuid "github.com/satori/go.uuid"
 	"good-danmu/src/global"
 	"good-danmu/src/model"
 	"log"
 	"sync"
-
-	"github.com/gorilla/websocket"
-	uuid "github.com/satori/go.uuid"
 )
 
 // TODO: when client is offline, remove it from the DanmuServer list.
@@ -80,6 +80,11 @@ func (dm *DanmuServer) Close() {
 	dm.mutex.Unlock()
 }
 
+type Msg struct {
+	Time    string `json:"time"`
+	Content string `json:"content"`
+}
+
 func (dm *DanmuServer) ReadLoop() {
 	log.Println(dm.dmName + "is reading looply~")
 	var (
@@ -90,19 +95,18 @@ func (dm *DanmuServer) ReadLoop() {
 		if _, data, err = dm.conn.ReadMessage(); err != nil {
 			goto ERR
 		}
+		var msg Msg
+		err = json.Unmarshal(data, &msg)
 		select {
-		case dm.InChan <- data:
+		case dm.InChan <- []byte(msg.Content):
 			{
-				log.Println(DanmuChannels)
-				log.Println(dm.Username, "said:", data)
-				//Save danmu content to database.
-				//TODO: Use Redis to reduce the write ops of mysql.
-				SaveDanmu(dm.dmName, dm.Username, data)
+				//SaveDanmu(dm.dmName, dm.Username, data)
+				global.RDB.Rdb.Set(string(dm.uid[:])+msg.Time, data, -1)
 				// Traverse the channel in the server
 				// TODO: Use Redis connection pool to broadcast the message.
 				for _, v := range DanmuChannels[dm.dmName] {
 					if v.uid != dm.uid && !v.isClosed {
-						v.InChan <- data
+						v.InChan <- []byte(msg.Content)
 						fmt.Println("send to:", v.uid)
 					}
 				}
@@ -142,10 +146,11 @@ ERR:
 func InitDanmuServer(wsConn *websocket.Conn, dmName string, Username string) (conn *DanmuServer, err error) {
 	log.Println(Username + " Joined " + dmName)
 	conn = &DanmuServer{
-		dmName:    dmName,
-		Username:  Username,
-		uid:       uuid.NewV4(),
-		conn:      wsConn,
+		dmName:   dmName,
+		Username: Username,
+		uid:      uuid.NewV4(),
+		conn:     wsConn,
+		// Use 1000 byte to cache the message
 		InChan:    make(chan []byte, 1000),
 		OutChan:   make(chan []byte, 1000),
 		CloseChan: make(chan byte, 1),

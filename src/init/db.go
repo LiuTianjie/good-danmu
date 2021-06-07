@@ -53,14 +53,18 @@ func Gorm(db *gorm.DB) {
 	log.Println("初始化数据库成功")
 }
 
-func ConnectRDB() *redis.Client {
+func ConnectRDB() *global.RedisDB {
 	r := global.CONFIG.Redis
-	redisDb := redis.NewClient(&redis.Options{
+	rDb := redis.NewClient(&redis.Options{
 		Addr:     r.Addr,
 		Password: r.Password,
 		DB:       r.DB,
 	})
-	if pong, err := redisDb.Ping().Result(); err != nil {
+	redisDb := &global.RedisDB{
+		Rdb:     rDb,
+		AofChan: make(chan bool, 0),
+	}
+	if pong, err := redisDb.Rdb.Ping().Result(); err != nil {
 		log.Println("Redis连接失败！")
 	} else {
 		log.Println("Redis连接成功，pong is :", pong, err)

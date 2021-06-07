@@ -16,16 +16,16 @@ import (
 
 var (
 	DB     *gorm.DB
-	RDB    *redis.Client
+	RDB    *RedisDB
 	CONFIG Server
 	VP     *viper.Viper
 )
 
 type Server struct {
-	JWT        JWT    `mapstructure:"jwt" json:"jwt" yaml:"jwt"`
-	ServerInfo string `mapstructure:"server-info" json:"server-info" yaml:"server-info"`
-	Mysql      Mysql  `mapstructure:"mysql" json:"mysql" yaml:"mysql"`
-	Redis      Redis  `mapstructure:"redis" json:"redis", yaml:"redis"`
+	JWT        JWT           `mapstructure:"jwt" json:"jwt" yaml:"jwt"`
+	ServerInfo string        `mapstructure:"server-info" json:"server-info" yaml:"server-info"`
+	Mysql      Mysql         `mapstructure:"mysql" json:"mysql" yaml:"mysql"`
+	Redis      RedisDbConfig `mapstructure:"redis" json:"redis" yaml:"redis"`
 }
 
 type JWT struct {
@@ -46,7 +46,12 @@ type Mysql struct {
 	LogZap       string `mapstructure:"log-zap" json:"logZap" yaml:"log-zap"`
 }
 
-type Redis struct {
+type RedisDB struct {
+	Rdb     *redis.Client
+	AofChan chan bool
+}
+
+type RedisDbConfig struct {
 	Addr     string
 	Password string
 	DB       int

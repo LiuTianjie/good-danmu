@@ -22,12 +22,14 @@ type room struct {
 	DanmuCount  int    `json:"danmu_count"`
 }
 
+// SearchAllRooms 获取房间列表
 func SearchAllRooms() []room {
 	var rooms []room
 	global.DB.Table("danmu_rooms").Select([]string{"id", "room_name", "room_desc", "online_users, danmu_count"}).Scan(&rooms)
 	return rooms
 }
 
+// SearchUser 跟用户相关的查询操作
 func SearchUser(mode string, arg interface{}) (data model.User, err error) {
 	switch mode {
 	case "ByPass":
