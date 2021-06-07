@@ -21,6 +21,7 @@ func main() {
 		db, _ := global.DB.DB()
 		defer db.Close()
 	}
+	global.RDB = in.ConnectRDB()
 	router := in.Routers()
 	router.Run(":8000")
 }
