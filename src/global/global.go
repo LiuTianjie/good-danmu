@@ -9,12 +9,14 @@
 package global
 
 import (
+	"github.com/go-redis/redis"
 	"github.com/spf13/viper"
 	"gorm.io/gorm"
 )
 
 var (
 	DB     *gorm.DB
+	RDB    *redis.Client
 	CONFIG Server
 	VP     *viper.Viper
 )
@@ -23,6 +25,7 @@ type Server struct {
 	JWT        JWT    `mapstructure:"jwt" json:"jwt" yaml:"jwt"`
 	ServerInfo string `mapstructure:"server-info" json:"server-info" yaml:"server-info"`
 	Mysql      Mysql  `mapstructure:"mysql" json:"mysql" yaml:"mysql"`
+	Redis      Redis  `mapstructure:"redis" json:"redis", yaml:"redis"`
 }
 
 type JWT struct {
@@ -41,6 +44,12 @@ type Mysql struct {
 	MaxOpenConns int    `mapstructure:"max-open-conns" json:"maxOpenConns" yaml:"max-open-conns"`
 	LogMode      bool   `mapstructure:"log-mode" json:"logMode" yaml:"log-mode"`
 	LogZap       string `mapstructure:"log-zap" json:"logZap" yaml:"log-zap"`
+}
+
+type Redis struct {
+	Addr     string
+	Password string
+	DB       int
 }
 
 func (m *Mysql) Dsn() string {
