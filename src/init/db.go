@@ -9,6 +9,7 @@
 package init
 
 import (
+	"github.com/go-redis/redis"
 	"good-danmu/src/global"
 	"good-danmu/src/model"
 	"log"
@@ -50,4 +51,19 @@ func Gorm(db *gorm.DB) {
 		os.Exit(0)
 	}
 	log.Println("初始化数据库成功")
+}
+
+func ConnectRDB() *redis.Client {
+	r := global.CONFIG.Redis
+	redisDb := redis.NewClient(&redis.Options{
+		Addr:     r.Addr,
+		Password: r.Password,
+		DB:       r.DB,
+	})
+	if pong, err := redisDb.Ping().Result(); err != nil {
+		log.Println("Redis连接失败！")
+	} else {
+		log.Println("Redis连接成功，pong is :", pong, err)
+	}
+	return redisDb
 }

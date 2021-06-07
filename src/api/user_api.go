@@ -9,6 +9,7 @@
 package api
 
 import (
+	"encoding/json"
 	"errors"
 	"good-danmu/src/global"
 	h "good-danmu/src/handler"
@@ -24,11 +25,11 @@ import (
 	uuid "github.com/satori/go.uuid"
 )
 
-type userInfo struct {
-	token     string
-	userName  string
-	userId    uuid.UUID
-	privilege int
+type UserInfo struct {
+	Token     string    `json:"token"`
+	UserName  string    `json:"user_name"`
+	UserId    uuid.UUID `json:"user_id"`
+	Privilege int       `json:"privilege"`
 }
 
 func Register(c *gin.Context) {
@@ -74,6 +75,24 @@ func Login(c *gin.Context) {
 }
 
 func tokenNext(c *gin.Context, user model.User) {
+	var (
+		err       error
+		token     string
+		tokenInfo UserInfo
+	)
+	// 先查redis中有没有token
+	if token, err = global.RDB.Get(user.Username).Result(); err != nil {
+		log.Println("Redis中没有token")
+	} else {
+		if err = json.Unmarshal([]byte(token), &tokenInfo); err != nil {
+			utils.FailedMsg(400, "获取token失败", c)
+			return
+		}
+		// 在Redis中查找到，返回tokenInfo
+		utils.OkDetail(200, tokenInfo, "登录成功", c)
+		return
+	}
+	// 在Redis中没有查找到，则签发token
 	j := middleware.JWT{
 		SignKey: []byte(global.CONFIG.JWT.SignKey),
 	}
@@ -88,17 +107,27 @@ func tokenNext(c *gin.Context, user model.User) {
 			Issuer:    global.CONFIG.JWT.SignKey,
 		},
 	}
-	if token, err := j.CreateJWT(claims); err != nil {
-		log.Println("生成token失败")
+	if token, err = j.CreateJWT(claims); err != nil {
 		utils.FailedMsg(400, "获取token失败", c)
 		return
 	} else {
-		utils.OkDetail(200, &userInfo{token, user.Username, user.UUID, claims.Privilege}, "登录成功", c)
-		return
+		// 将新签发的token写入redis
+		tokenInfo = UserInfo{
+			token,
+			user.Username,
+			user.UUID,
+			claims.Privilege,
+		}
+		data, _ := json.Marshal(tokenInfo)
+		utils.OkDetail(200, tokenInfo, "登录成功", c)
+		if err = global.RDB.Set(user.Username, data, 100*time.Second).Err(); err != nil {
+			log.Println("向Redis存储tokenInfo的过程出错")
+			return
+		}
 	}
 }
 
-func UserInfo(c *gin.Context) {
+func GetUserInfo(c *gin.Context) {
 	var (
 		err      error
 		userName string
@@ -112,7 +141,7 @@ func UserInfo(c *gin.Context) {
 			utils.OkMsg(200, "无此用户", c)
 			return
 		} else {
-			utils.OkDetail(200, &userInfo{userName: user.Username, userId: user.UUID}, "查找成功", c)
+			utils.OkDetail(200, &UserInfo{UserName: user.Username, UserId: user.UUID}, "查找成功", c)
 			return
 		}
 	}
