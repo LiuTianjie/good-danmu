@@ -12,6 +12,8 @@ import (
 	"github.com/go-redis/redis"
 	"github.com/spf13/viper"
 	"gorm.io/gorm"
+	"log"
+	"time"
 )
 
 var (
@@ -59,4 +61,19 @@ type RedisDbConfig struct {
 
 func (m *Mysql) Dsn() string {
 	return m.Username + ":" + m.Password + "@tcp(" + m.Path + ")/" + m.Dbname + "?" + m.Config
+}
+
+// Persistence Save the values per minute.
+func (rdb *RedisDB) Persistence() {
+	var err error
+	for {
+		if err = rdb.Rdb.Get("Save").Err(); err != nil {
+			rdb.Rdb.Set("Save", "wait", 60*time.Second)
+		} else {
+			rdb.Rdb.BgSave()
+			// Save data to Mysql
+			log.Println("Saving")
+			time.Sleep(60 * time.Second)
+		}
+	}
 }

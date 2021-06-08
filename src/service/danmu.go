@@ -11,13 +11,12 @@ package service
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"github.com/gorilla/websocket"
 	uuid "github.com/satori/go.uuid"
 	"good-danmu/src/global"
-	"good-danmu/src/model"
 	"log"
 	"sync"
+	"time"
 )
 
 // TODO: when client is offline, remove it from the DanmuServer list.
@@ -81,10 +80,12 @@ func (dm *DanmuServer) Close() {
 }
 
 type Msg struct {
-	Time    string `json:"time"`
-	Content string `json:"content"`
+	Username string `json:"username"`
+	Time     string `json:"time"`
+	Content  string `json:"content"`
 }
 
+// ReadLoop 用户协程，需要考虑并发问题
 func (dm *DanmuServer) ReadLoop() {
 	log.Println(dm.dmName + "is reading looply~")
 	var (
@@ -97,18 +98,15 @@ func (dm *DanmuServer) ReadLoop() {
 		}
 		var msg Msg
 		err = json.Unmarshal(data, &msg)
+		log.Println(msg)
 		select {
 		case dm.InChan <- []byte(msg.Content):
 			{
-				//SaveDanmu(dm.dmName, dm.Username, data)
-				global.RDB.Rdb.Set(string(dm.uid[:])+msg.Time, data, -1)
+				global.RDB.Rdb.Set(string(dm.uid[:])+msg.Time, data, 120*time.Second)
 				// Traverse the channel in the server
-				// TODO: Use Redis connection pool to broadcast the message.
 				for _, v := range DanmuChannels[dm.dmName] {
-					if v.uid != dm.uid && !v.isClosed {
-						v.InChan <- []byte(msg.Content)
-						fmt.Println("send to:", v.uid)
-					}
+					// 遍历对应频道的在线客户端，利用其通道分发消息
+					v.OutChan <- []byte(msg.Content)
 				}
 			}
 		case <-dm.CloseChan:
@@ -137,6 +135,8 @@ func (dm *DanmuServer) WriteLoop() {
 		}
 		if err = dm.conn.WriteMessage(websocket.TextMessage, data); err != nil {
 			goto ERR
+		} else {
+			log.Println(dm.Username, "is sending...")
 		}
 	}
 ERR:
@@ -158,20 +158,4 @@ func InitDanmuServer(wsConn *websocket.Conn, dmName string, Username string) (co
 	go conn.ReadLoop()
 	go conn.WriteLoop()
 	return
-}
-
-func SaveDanmu(DanmuId, Username string, DanmuContent []byte) {
-	danmu := &model.DanmuContent{
-		Content:  DanmuContent,
-		RoomId:   DanmuId,
-		Username: Username,
-		Type:     "normal",
-	}
-	err := global.DB.Create(&danmu).Error
-	if err != nil {
-		log.Println(err)
-		log.Println("插入出错")
-	} else {
-		log.Println("插入成功！")
-	}
 }

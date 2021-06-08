@@ -28,4 +28,5 @@ type DanmuContent struct {
 	RoomId   string `json:"room_id" gorm:"comment:弹幕房间id"`
 	Content  []byte `json:"content" gorm:"comment:弹幕内容"`
 	Type     string `json:"type" gorm:"comment:弹幕类型"`
+	Time     string `json:"time" gorm:"发布时间"`
 }

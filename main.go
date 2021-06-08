@@ -22,6 +22,7 @@ func main() {
 		defer db.Close()
 	}
 	global.RDB = in.ConnectRDB()
+	go global.RDB.Persistence()
 	router := in.Routers()
 	router.Run(":8000")
 }

@@ -62,7 +62,7 @@ func ConnectRDB() *global.RedisDB {
 	})
 	redisDb := &global.RedisDB{
 		Rdb:     rDb,
-		AofChan: make(chan bool, 0),
+		AofChan: make(chan bool, 1),
 	}
 	if pong, err := redisDb.Rdb.Ping().Result(); err != nil {
 		log.Println("Redis连接失败！")
