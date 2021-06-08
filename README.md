@@ -42,6 +42,7 @@ understand how and why Golang is so suitable for high performance, concurrent pr
 - [x] Use Redis to cache dan mu.
   - [x] use redis to cache the login status
   - [x] storage
-  - [ ] redis storage AOF/RDB
+  - [x] redis storage AOF/RDB
+  - [ ] when a new client is online, search the exact channel's data, if the data is not in redis, do the search in mysql, and store it in redis, with a expire time of 10mins.
   > Using Redis to Reduce Database Write Frequency
 - [ ] Benchmark

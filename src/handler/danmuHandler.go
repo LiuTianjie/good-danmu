@@ -26,7 +26,6 @@ func DanmuHandler(c *gin.Context) {
 		conn     *websocket.Conn
 		err      error
 		danmu    *dm.DanmuServer
-		data     []byte
 		Username string
 	)
 	if Username, err = parse.GetUserFromToken(token); err != nil {
@@ -47,20 +46,9 @@ func DanmuHandler(c *gin.Context) {
 	// After upgrade, the conn is a real websocket connection.
 	// After InitDanmuServer function is executed, we run two goroutines for it's read and write loop.
 	if danmu, err = dm.InitDanmuServer(conn, danmuId, Username); err != nil {
-		goto ERR
+		//goto ERR
 	}
-	// TODO:Join Redis pool
-	// Here we are in main thread, append elements into DanmuChannels will not cause a concurrent.
 	dm.DanmuChannels[danmuId] = append(dm.DanmuChannels[danmuId], danmu)
-	for {
-		if data, err = danmu.Read(); err != nil {
-			goto ERR
-		}
-		if err = danmu.Write(data); err != nil {
-			goto ERR
-		}
-	}
-
-ERR:
-	danmu.Close()
+	// 1、获取已经持久化的弹幕
+	// 2、推送到客户端
 }

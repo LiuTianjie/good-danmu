@@ -23,6 +23,7 @@ type RoomStruct struct {
 
 func GetDanmuRooms(c *gin.Context) {
 	rooms := h.SearchAllRooms()
+	// TODO: 获取房间在线人数列表和当前弹幕总数
 	utils.OkDetail(200, rooms, "获取房间列表成功", c)
 }
 
