@@ -36,13 +36,12 @@ understand how and why Golang is so suitable for high performance, concurrent pr
   - [x] Register
   - [ ] single place login
   - [ ] More complex auth with casbin
-- [ ] Storage
+- [x] Storage
   - [x] user model
   - [x] danmu model
-- [x] Use Redis to cache dan mu.
+- [x] Use Redis to store danmu, cache login token.
   - [x] use redis to cache the login status
   - [x] storage
   - [x] redis storage AOF/RDB
-  - [ ] when a new client is online, search the exact channel's data, if the data is not in redis, do the search in mysql, and store it in redis, with a expire time of 10mins.
-  > Using Redis to Reduce Database Write Frequency
+  - [x] when a new client is online, search the exact channel's data, if the data is not in redis, do the search in mysql, and store it in redis, with time of 10 minutes.
 - [ ] Benchmark
