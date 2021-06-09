@@ -1,5 +1,5 @@
-/*
- * @Descripttion: danmu handler
+/*Package handler
+ * @Descripttion: danmu handler, do some pre precess.
  * @version: 1.0
  * @Author: Nickname4th
  * @Date: 2021-05-22 17:25:24
@@ -9,6 +9,8 @@
 package handler
 
 import (
+	"encoding/json"
+	"good-danmu/src/global"
 	dm "good-danmu/src/service"
 	"good-danmu/src/utils"
 	"good-danmu/src/utils/parse"
@@ -19,6 +21,13 @@ import (
 	"github.com/gorilla/websocket"
 )
 
+// DanmuHandler
+// 1. Check whether there is a token.
+// 2. After upgrade, the conn is a real websocket connection.
+// 3. We run two goroutines for it's read and write loop.
+// 4 .Get the stored danmus and push it to the client, to get high performance,
+// we need to zip the danmus rather to send it one by one. Here need to negotiate
+// with front end developers to standardize data formats.
 func DanmuHandler(c *gin.Context) {
 	danmuId := c.Param("id")
 	token := c.GetHeader("Sec-WebSocket-Protocol")
@@ -37,18 +46,14 @@ func DanmuHandler(c *gin.Context) {
 		CheckOrigin: func(r *http.Request) bool {
 			return true
 		},
-		// Check whether there is a token.
 		Subprotocols: []string{token},
 	}
 	if conn, err = upGrader.Upgrade(c.Writer, c.Request, nil); err != nil {
 		return
 	}
-	// After upgrade, the conn is a real websocket connection.
-	// After InitDanmuServer function is executed, we run two goroutines for it's read and write loop.
-	if danmu, err = dm.InitDanmuServer(conn, danmuId, Username); err != nil {
-		//goto ERR
-	}
+	danmu = dm.InitDanmuServer(conn, danmuId, Username)
 	dm.DanmuChannels[danmuId] = append(dm.DanmuChannels[danmuId], danmu)
-	// 1、获取已经持久化的弹幕
-	// 2、推送到客户端
+	existedDanmus := global.RDB.Rdb.LRange(danmuId, 0, -1)
+	collection, _ := json.Marshal(existedDanmus.Val())
+	danmu.OutChan <- collection
 }
