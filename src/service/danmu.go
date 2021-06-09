@@ -9,14 +9,12 @@
 package service
 
 import (
-	"encoding/json"
 	"errors"
 	"github.com/gorilla/websocket"
 	uuid "github.com/satori/go.uuid"
 	"good-danmu/src/global"
 	"log"
 	"sync"
-	"time"
 )
 
 // TODO: when client is offline, remove it from the DanmuServer list.
@@ -79,12 +77,6 @@ func (dm *DanmuServer) Close() {
 	dm.mutex.Unlock()
 }
 
-type Msg struct {
-	Username string `json:"username"`
-	Time     string `json:"time"`
-	Content  string `json:"content"`
-}
-
 // ReadLoop 用户协程，需要考虑并发问题
 func (dm *DanmuServer) ReadLoop() {
 	log.Println(dm.dmName + "is reading looply~")
@@ -96,17 +88,13 @@ func (dm *DanmuServer) ReadLoop() {
 		if _, data, err = dm.conn.ReadMessage(); err != nil {
 			goto ERR
 		}
-		var msg Msg
-		err = json.Unmarshal(data, &msg)
-		log.Println(msg)
 		select {
-		case dm.InChan <- []byte(msg.Content):
+		case dm.InChan <- data:
 			{
-				global.RDB.Rdb.Set(string(dm.uid[:])+msg.Time, data, 120*time.Second)
-				// Traverse the channel in the server
+				global.RDB.Rdb.LPush(string(dm.dmName), data, -1)
 				for _, v := range DanmuChannels[dm.dmName] {
 					// 遍历对应频道的在线客户端，利用其通道分发消息
-					v.OutChan <- []byte(msg.Content)
+					v.OutChan <- data
 				}
 			}
 		case <-dm.CloseChan:
@@ -143,7 +131,7 @@ ERR:
 	dm.Close()
 }
 
-func InitDanmuServer(wsConn *websocket.Conn, dmName string, Username string) (conn *DanmuServer, err error) {
+func InitDanmuServer(wsConn *websocket.Conn, dmName string, Username string) (conn *DanmuServer) {
 	log.Println(Username + " Joined " + dmName)
 	conn = &DanmuServer{
 		dmName:   dmName,
