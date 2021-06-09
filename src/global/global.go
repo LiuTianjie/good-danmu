@@ -1,5 +1,5 @@
-/*
- * @Descripttion: your project
+/*Package global
+ * @Descripttion: Global structure, use viper to init.
  * @version: 1.0
  * @Author: Nickname4th
  * @Date: 2021-05-28 15:53:43
@@ -12,7 +12,6 @@ import (
 	"github.com/go-redis/redis"
 	"github.com/spf13/viper"
 	"gorm.io/gorm"
-	"log"
 	"time"
 )
 
@@ -63,16 +62,16 @@ func (m *Mysql) Dsn() string {
 	return m.Username + ":" + m.Password + "@tcp(" + m.Path + ")/" + m.Dbname + "?" + m.Config
 }
 
-// Persistence Save the values per minute.
+// Persistence
+// Save the values per 6 minutes.
 func (rdb *RedisDB) Persistence() {
 	var err error
 	for {
 		if err = rdb.Rdb.Get("Save").Err(); err != nil {
-			rdb.Rdb.Set("Save", "wait", 60*time.Second)
+			rdb.Rdb.Set("Save", "wait", 600*time.Second)
 		} else {
 			rdb.Rdb.BgSave()
 			// Save data to Mysql
-			log.Println("Saving")
 			time.Sleep(60 * time.Second)
 		}
 	}
