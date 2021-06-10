@@ -121,7 +121,7 @@ func tokenNext(c *gin.Context, user model.User) {
 		data, _ := json.Marshal(tokenInfo)
 		utils.OkDetail(200, tokenInfo, "登录成功", c)
 		if err = global.RDB.Rdb.Set(user.Username, data, 100*time.Second).Err(); err != nil {
-			log.Println("向Redis存储tokenInfo的过程出错")
+			log.Println("向Redis存储tokenInfo的过程出错", err)
 			return
 		}
 	}
