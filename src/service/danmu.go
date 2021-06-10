@@ -91,7 +91,7 @@ func (dm *DanmuServer) ReadLoop() {
 		select {
 		case dm.InChan <- data:
 			{
-				global.RDB.Rdb.LPush(string(dm.dmName), data, -1)
+				global.RDB.Rdb.LPush(string(dm.dmName), data)
 				for _, v := range DanmuChannels[dm.dmName] {
 					// 遍历对应频道的在线客户端，利用其通道分发消息
 					v.OutChan <- data
