@@ -48,12 +48,12 @@ type Mysql struct {
 }
 
 type RedisDB struct {
-	Rdb     *redis.Client
+	Rdb     *redis.ClusterClient
 	AofChan chan bool
 }
 
 type RedisDbConfig struct {
-	Addr     string
+	Addr     []string
 	Password string
 	DB       int
 }

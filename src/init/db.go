@@ -55,10 +55,10 @@ func Gorm(db *gorm.DB) {
 
 func ConnectRDB() *global.RedisDB {
 	r := global.CONFIG.Redis
-	rDb := redis.NewClient(&redis.Options{
-		Addr:     r.Addr,
+	rDb := redis.NewClusterClient(&redis.ClusterOptions{
+		Addrs:    r.Addr,
 		Password: r.Password,
-		DB:       r.DB,
+		//DB:       r.DB,
 	})
 	redisDb := &global.RedisDB{
 		Rdb:     rDb,
