@@ -1,4 +1,4 @@
-/*
+/*Package model
  * @Descripttion: user model
  * @version: 1.0
  * @Author: Nickname4th
@@ -15,7 +15,9 @@ import (
 
 type User struct {
 	gorm.Model
-	UUID     uuid.UUID `json:"uuid" gorm:"index:,unique"`
-	Username string    `json:"username" grom:"comment:用户名"`
-	Password string    `json:"password" grom:"comment:用户密码"`
+	UUID       uuid.UUID `json:"uuid" gorm:"index:,unique"`
+	Username   string    `json:"username" gorm:"comment:用户名"`
+	Password   string    `json:"password" gorm:"comment:用户密码"`
+	Role       Role      `json:"role" gorm:"foreignKey:RoleId;references:UserRoleId;comment:用户角色"`
+	UserRoleId string    `json:"user_ole_id" gorm:"index;comment:用户角色ID"`
 }

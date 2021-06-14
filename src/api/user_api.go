@@ -1,4 +1,4 @@
-/*
+/*Package api
  * @Descripttion: your project
  * @version: 1.0
  * @Author: Nickname4th
@@ -30,6 +30,7 @@ type UserInfo struct {
 	UserName  string    `json:"user_name"`
 	UserId    uuid.UUID `json:"user_id"`
 	Privilege int       `json:"privilege"`
+	RoleId    string    `json:"role_id"`
 }
 
 func Register(c *gin.Context) {
@@ -47,6 +48,11 @@ func Register(c *gin.Context) {
 		user := &model.User{Username: u.Username, Password: u.Password}
 		user.Password = utils.MD5V([]byte(user.Password))
 		user.UUID = uuid.NewV4()
+		user.Role = model.Role{
+			// 刚注册时都是普通用户
+			RoleName: "normal",
+		}
+		user.UserRoleId = u.Username
 		if err = global.DB.Create(&user).Error; err != nil {
 			utils.FailedMsg(400, "注册失败", c)
 		} else {
@@ -101,6 +107,7 @@ func tokenNext(c *gin.Context, user model.User) {
 		Username:   user.Username,
 		BufferTime: global.CONFIG.JWT.BufferTime,
 		Privilege:  1,
+		RoleId:     user.UserRoleId,
 		StandardClaims: jwt.StandardClaims{
 			NotBefore: time.Now().Unix() - 1000,
 			ExpiresAt: time.Now().Unix() + global.CONFIG.JWT.ExpiresTime,
@@ -117,6 +124,7 @@ func tokenNext(c *gin.Context, user model.User) {
 			user.Username,
 			user.UUID,
 			claims.Privilege,
+			claims.RoleId,
 		}
 		data, _ := json.Marshal(tokenInfo)
 		utils.OkDetail(200, tokenInfo, "登录成功", c)
