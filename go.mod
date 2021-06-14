@@ -3,7 +3,8 @@ module good-danmu
 go 1.15
 
 require (
-	github.com/casbin/casbin v1.9.1 // indirect
+	github.com/casbin/casbin/v2 v2.31.3
+	github.com/casbin/gorm-adapter/v3 v3.2.12
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/fsnotify/fsnotify v1.4.9
 	github.com/gin-gonic/gin v1.7.2
