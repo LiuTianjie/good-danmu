@@ -45,6 +45,7 @@ func Gorm(db *gorm.DB) {
 		model.User{},
 		model.DanmuRoom{},
 		model.DanmuContent{},
+		model.Role{},
 	)
 	if err != nil {
 		log.Println("初始化数据库失败")

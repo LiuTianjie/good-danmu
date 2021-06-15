@@ -27,6 +27,7 @@ type Server struct {
 	ServerInfo string        `mapstructure:"server-info" json:"server-info" yaml:"server-info"`
 	Mysql      Mysql         `mapstructure:"mysql" json:"mysql" yaml:"mysql"`
 	Redis      RedisDbConfig `mapstructure:"redis" json:"redis" yaml:"redis"`
+	Casbin     Casbin        `mapstructure:"casbin" json:"casbin" yaml:"casbin"`
 }
 
 type JWT struct {
@@ -75,4 +76,8 @@ func (rdb *RedisDB) Persistence() {
 			time.Sleep(60 * time.Second)
 		}
 	}
+}
+
+type Casbin struct {
+	ModelPath string `mapstructure:"model-path" json:"modelPath" yaml:"model-path"` // 存放casbin模型的相对路径
 }

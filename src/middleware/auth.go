@@ -34,10 +34,10 @@ var (
 func JWTAuth() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		token := c.Request.Header.Get("token")
-		if token == ""{
+		if token == "" {
 			token = c.Request.Header.Get("Sec-WebSocket-Protocol")
 		}
-		log.Println("token is ",token)
+		log.Println("token is ", token)
 		if token == "" {
 			utils.FailedMsg(401, "未授权的访问", c)
 			c.Abort()
@@ -56,7 +56,7 @@ func JWTAuth() gin.HandlerFunc {
 			return
 		}
 		var u model.User
-		if err = global.DB.Where("`uuid` = ?", claims.UUID.String()).First(&u).Error; err != nil {
+		if err = global.DB.Preload("Role").Where("`uuid` = ?", claims.UUID.String()).First(&u).Error; err != nil {
 			utils.FailedMsg(401, "认证失败", c)
 			c.Abort()
 		}
@@ -67,6 +67,7 @@ func JWTAuth() gin.HandlerFunc {
 			c.Header("new-token", newToken)
 			c.Header("new-expires-at", strconv.FormatInt(newClaims.ExpiresAt, 10))
 		}
+		log.Println("user role info is:", u.UserRoleId, u.Role.RoleName)
 		c.Set("claims", claims)
 		c.Next()
 	}

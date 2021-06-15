@@ -20,5 +20,6 @@ type CustomClaims struct {
 	Username   string
 	Privilege  int
 	BufferTime int64
+	RoleId     string
 	jwt.StandardClaims
 }
