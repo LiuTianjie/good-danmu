@@ -17,7 +17,7 @@ import (
 func InitDanmuRoute(Router *gin.RouterGroup) {
 	DanmuRouter := Router.Group("")
 	{
-		DanmuRouter.GET("danmu:id", handler.DanmuHandler)
+		DanmuRouter.GET("danmu", handler.DanmuHandler)
 		DanmuRouter.POST("createdanmuroom", api.CreateDanmuRoom)
 		DanmuRouter.GET("getdanmulist", api.GetDanmuRooms)
 	}
