@@ -29,7 +29,7 @@ import (
 // we need to zip the danmus rather to send it one by one. Here need to negotiate
 // with front end developers to standardize data formats.
 func DanmuHandler(c *gin.Context) {
-	danmuId := c.Param("id")
+	danmuId := c.Query("id")
 	token := c.GetHeader("Sec-WebSocket-Protocol")
 	var (
 		conn     *websocket.Conn
