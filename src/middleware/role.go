@@ -13,6 +13,7 @@ import (
 	"good-danmu/src/service"
 	"good-danmu/src/utils"
 	"log"
+	"strings"
 )
 
 func RoleJudge(c *gin.Context) {
@@ -23,7 +24,7 @@ func RoleJudge(c *gin.Context) {
 	claims, _ := c.Get("claims")
 	waitUse := claims.(*model.CustomClaims)
 	sub := waitUse.RoleId
-	obj := c.Request.URL.RequestURI()
+	obj := strings.Split(c.Request.URL.RequestURI(), "?")[0]
 	act := c.Request.Method
 	if e, err = service.Casbin(); err != nil {
 		log.Println("读取配置文件失败")
